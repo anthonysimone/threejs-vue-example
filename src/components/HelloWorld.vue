@@ -1,40 +1,96 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+  <div id="scene-container" ref="sceneContainer"></div>
 </template>
 
 <script>
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import Stats from 'stats.js'
+
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
+  data () {
+    return {
+      container: null,
+      scene: null,
+      camera: null,
+      controls: null,
+      renderer: null,
+      stats: null
+    }
+  },
+  methods: {
+    init () {
+      // set container
+      this.container = this.$refs.sceneContainer
+
+      // add stats
+      this.stats = new Stats()
+      this.container.appendChild(this.stats.dom)
+
+      // add camera
+      const fov = 60 // Field of view
+      const aspect = this.container.clientWidth / this.container.clientHeight
+      const near = 0.1 // the near clipping plane
+      const far = 30 // the far clipping plane
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 5, 10)
+      this.camera = camera
+
+      // create scene
+      this.scene = new THREE.Scene()
+      this.scene.background = new THREE.Color('skyblue')
+
+      // add lights
+      const ambientLight = new THREE.HemisphereLight(
+        0xffffff, // bright sky color
+        0x222222, // dim ground color
+        1 // intensity
+      )
+      const mainLight = new THREE.DirectionalLight(0xffffff, 4.0)
+      mainLight.position.set(10, 10, 10)
+      this.scene.add(ambientLight, mainLight)
+
+      // add controls
+      this.controls = new OrbitControls(this.camera, this.container)
+
+      // create renderer
+      this.renderer = new THREE.WebGLRenderer({ antialias: true })
+      this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
+      this.renderer.setPixelRatio(window.devicePixelRatio)
+      this.renderer.gammaFactor = 2.2
+      this.renderer.outputEncoding = THREE.sRGBEncoding
+      this.renderer.physicallyCorrectLights = true
+      this.container.appendChild(this.renderer.domElement)
+
+      // set aspect ratio to match the new browser window aspect ratio
+      this.camera.aspect = this.container.clientWidth / this.container.clientHeight
+      this.camera.updateProjectionMatrix()
+      this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
+
+      const loader = new GLTFLoader()
+
+      loader.load(
+        '/three-assets/RobotExpressive.glb',
+        gltf => {
+          this.scene.add(gltf.scene)
+        },
+        undefined,
+        undefined
+      )
+
+      this.renderer.setAnimationLoop(() => {
+        this.render()
+      })
+    },
+    render () {
+      this.renderer.render(this.scene, this.camera)
+      this.stats.update()
+    }
+  },
+  mounted () {
+    this.init()
   }
 }
 </script>
@@ -54,5 +110,8 @@ li {
 }
 a {
   color: #42b983;
+}
+#scene-container {
+  height: 100%;
 }
 </style>

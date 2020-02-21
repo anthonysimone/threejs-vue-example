@@ -1,24 +1,13 @@
 # threejs-vue-example
 
-## Project setup
+Sets up a super basic example of using GLTFLoader with a vue project set up with vue cli.
+
+## Setup
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Serve locally
 ```
 npm run serve
 ```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
